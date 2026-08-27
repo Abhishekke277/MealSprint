@@ -1,88 +1,583 @@
 # ⚡ MealSprint — Food Ordering & Management Web Application
 
-MealSprint is a modern, full-stack food delivery and restaurant management single-page web application (SPA). Built with **Python (FastAPI)**, **MySQL (SQLAlchemy ORM)**, and **Vanilla JavaScript**, it offers secure JWT authentication, role-based authorization (Admin / Customer), authoritative server-side cart pricing, and live order tracking.
+A modern full-stack food ordering and restaurant management web application built with **FastAPI**, **MySQL**, **SQLAlchemy**, and **Vanilla JavaScript**.
+
+MealSprint provides a complete food-ordering experience for customers and a powerful management dashboard for administrators. The application includes secure JWT authentication, role-based authorization, server-side price validation, restaurant and menu management, mock payments, and order tracking.
 
 ---
 
 ## 🚀 Key Features
 
-* **Role-Based Authentication:** Unified sign-in/registration with customer and admin roles, Argon2 password hashing, and JWT token authorization.
-* **Modern Single-Page UI:** Clean responsive design with Font Awesome vector icons, sticky bottom cart counter, and modal popups.
-* **Customer Journey:** Search and filter restaurants by city/cuisine/status, dynamic menu counter, authoritative cart calculation, address entry, and mock payments.
-* **Admin Management Panel:** Full CRUD capabilities to create, edit, and delete restaurants and menu items, toggle restaurant status (Open/Closed), and manage item availability.
-* **Order Tracking & Cancellation:** Real-time lifecycle management (`PENDING`, `CONFIRMED`, `CANCELLED`).
+### 🔐 Secure Role-Based Authentication
+
+* Unified registration and login system.
+* Supports two user roles:
+
+  * **Customer**
+  * **Admin**
+* Passwords are securely hashed using **Argon2**.
+* JWT-based authentication for protected API routes.
+* Role-based authorization for admin-only features.
+
+### 🧑‍🍳 Customer Experience
+
+* Browse available restaurants.
+* Search restaurants by name.
+* Filter restaurants by:
+
+  * City
+  * Cuisine
+  * Open/Closed status
+* View restaurant menus and available food items.
+* Add and remove items from the cart.
+* Dynamic cart item counter.
+* Enter delivery address during checkout.
+* Server-side authoritative cart pricing.
+* Mock payment processing.
+* View personal orders and their status.
+* Cancel eligible orders.
+
+### 🛠️ Admin Management Panel
+
+Administrators can:
+
+* Create new restaurants.
+* Update restaurant details.
+* Delete restaurants.
+* Toggle restaurant status between **Open** and **Closed**.
+* Add new menu items.
+* Update food prices.
+* Update item availability.
+* Delete menu items.
+
+### 📦 Order Tracking
+
+Orders follow a simple lifecycle:
+
+```text
+PENDING → CONFIRMED
+    ↓
+CANCELLED
+```
+
+Supported order statuses:
+
+* `PENDING`
+* `CONFIRMED`
+* `CANCELLED`
 
 ---
 
-## 🛠️ Technology Stack
+# 🛠️ Technology Stack
 
-| Layer | Technology |
-| :--- | :--- |
-| **Backend** | Python 3.10+, FastAPI, Uvicorn |
-| **Database** | MySQL 8.0+, SQLAlchemy 2.0 ORM, PyMySQL |
-| **Security** | PyJWT, Pwdlib (Argon2), Pydantic v2 |
-| **Frontend** | HTML5, CSS3 (Custom Variables), Vanilla JavaScript (Fetch API) |
-| **Icons** | Font Awesome 6.5 (SVG/CDN) |
+| Layer                 | Technology                              |
+| --------------------- | --------------------------------------- |
+| **Backend**           | Python 3.10+, FastAPI, Uvicorn          |
+| **Database**          | MySQL 8.0+, SQLAlchemy 2.0 ORM, PyMySQL |
+| **Security**          | PyJWT, Pwdlib with Argon2, Pydantic v2  |
+| **Frontend**          | HTML5, CSS3, Vanilla JavaScript         |
+| **API Communication** | JavaScript Fetch API                    |
+| **Icons**             | Font Awesome 6.5 CDN                    |
 
 ---
 
-## 📁 Project Structure
+# 📁 Project Structure
 
 ```text
 mealsprint/
 │
-├── .env                  # Local MySQL credentials & JWT secrets
-├── requirements.txt      # Python dependencies
-├── README.md             # Project documentation
+├── .env
+├── requirements.txt
+├── README.md
 │
 ├── backend/
-│   ├── main.py           # FastAPI app entry point & CRUD routes
-│   ├── config.py         # Environment variables configuration
-│   ├── database.py       # SQLAlchemy engine & session dependency
-│   ├── models.py         # MySQL database models (Users, Restaurants, Items, Orders)
-│   ├── schemas.py        # Pydantic v2 validation schemas
-│   ├── security.py       # Argon2 password hashing & JWT token handlers
-│   └── seed.py           # Database seeder script
+│   ├── main.py
+│   ├── config.py
+│   ├── database.py
+│   ├── models.py
+│   ├── schemas.py
+│   ├── security.py
+│   └── seed.py
 │
 └── frontend/
-    ├── index.html        # Single-page application markup
-    ├── style.css         # Responsive styling & theme variables
-    └── app.js            # State management, API calls & DOM manipulation
-⚙️ Installation & Setup Guide1. Database CreationOpen MySQL Workbench or your terminal:SQLCREATE DATABASE IF NOT EXISTS mealsprint_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-2. Virtual Environment SetupOpen terminal in the project root:Bash# Create virtual environment
+    ├── index.html
+    ├── style.css
+    └── app.js
+```
+
+### File Description
+
+| File                  | Purpose                                            |
+| --------------------- | -------------------------------------------------- |
+| `.env`                | Stores database credentials and JWT secrets        |
+| `requirements.txt`    | Contains required Python dependencies              |
+| `README.md`           | Project documentation                              |
+| `backend/main.py`     | FastAPI application and API routes                 |
+| `backend/config.py`   | Environment variable configuration                 |
+| `backend/database.py` | SQLAlchemy database engine and session setup       |
+| `backend/models.py`   | Database models                                    |
+| `backend/schemas.py`  | Pydantic request and response schemas              |
+| `backend/security.py` | Password hashing and JWT token logic               |
+| `backend/seed.py`     | Initial database data seeder                       |
+| `frontend/index.html` | SPA structure and markup                           |
+| `frontend/style.css`  | Application styling and responsive design          |
+| `frontend/app.js`     | API calls, application state, and DOM manipulation |
+
+---
+
+# ⚙️ Installation & Setup
+
+## 1. Clone the Repository
+
+```bash
+git clone <YOUR_REPOSITORY_URL>
+cd mealsprint
+```
+
+---
+
+## 2. Create the MySQL Database
+
+Open **MySQL Workbench** or your MySQL terminal and run:
+
+```sql
+CREATE DATABASE IF NOT EXISTS mealsprint_db
+CHARACTER SET utf8mb4
+COLLATE utf8mb4_unicode_ci;
+```
+
+---
+
+## 3. Create a Virtual Environment
+
+Open a terminal in the project root directory.
+
+```bash
 python -m venv venv
+```
 
-# Activate virtual environment
-# Windows (PowerShell):
+### Activate the Virtual Environment
+
+#### Windows PowerShell
+
+```powershell
 venv\Scripts\Activate.ps1
-# Windows (Command Prompt):
+```
+
+#### Windows Command Prompt
+
+```bash
 venv\Scripts\activate.bat
-# macOS / Linux:
+```
+
+#### macOS / Linux
+
+```bash
 source venv/bin/activate
-3. Install Dependencies  Bashpip install -r requirements.txt
-4. Configure Environment VariablesCreate a .env file in the project root:Code snippetDATABASE_URL=mysql+pymysql://root:YOUR_PASSWORD@localhost:3306/mealsprint_db
+```
+
+---
+
+## 4. Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+## 5. Configure Environment Variables
+
+Create a `.env` file in the project root directory.
+
+```env
+DATABASE_URL=mysql+pymysql://root:YOUR_PASSWORD@localhost:3306/mealsprint_db
+
 SECRET_KEY=mealsprint_super_secret_development_key_32_bytes_long_987654321
+
 ALGORITHM=HS256
+
 ACCESS_TOKEN_EXPIRE_MINUTES=1440
+
 EMAIL_FROM=no-reply@mealsprint.local
-5. Seed Initial DataBashpython backend/seed.py
-🏃 Running the ApplicationStart Backend ServerBashuvicorn backend.main:app --reload
-Interactive API Documentation (Swagger UI): http://127.0.0.1:8000/docsStart Frontend ClientIn a second terminal:Bashcd frontend
+```
+
+> Replace `YOUR_PASSWORD` with your actual MySQL password.
+
+---
+
+## 6. Seed Initial Data
+
+Run the database seeder to create initial restaurants, food items, and test accounts.
+
+```bash
+python backend/seed.py
+```
+
+---
+
+# 🏃 Running the Application
+
+## Start the Backend Server
+
+From the project root:
+
+```bash
+uvicorn backend.main:app --reload
+```
+
+The FastAPI backend will start at:
+
+```text
+http://127.0.0.1:8000
+```
+
+### Interactive API Documentation
+
+Swagger UI:
+
+```text
+http://127.0.0.1:8000/docs
+```
+
+ReDoc:
+
+```text
+http://127.0.0.1:8000/redoc
+```
+
+---
+
+## Start the Frontend
+
+Open a **second terminal**.
+
+Navigate to the frontend directory:
+
+```bash
+cd frontend
+```
+
+Start the development server:
+
+```bash
 python -m http.server 3000
-Open in browser: http://localhost:3000🔑 Default Test AccountsRoleEmailPasswordAccessAdminadmin@mealsprint.comAdmin@12345Restaurant/Menu CRUD & Live Status ManagementCustomeruser@mealsprint.comUser@12345Restaurant Discovery, Ordering & Payment📡 REST API Endpoints Overview
+```
 
-Authentication
+Now open:
 
-POST /auth/register — Register a customer or admin accountPOST /auth/login — Login and receive JWT access tokenGET /auth/me — Introspect active user profile
+```text
+http://localhost:3000
+```
 
-Restaurants
+---
 
-GET /restaurants — List all restaurants with search/city/cuisine filtersGET /restaurants/{id} — Fetch restaurant details and menu itemsPOST /admin/restaurants — Create a restaurant (Admin only)PUT /admin/restaurants/{id} — Update restaurant details/status (Admin only)DELETE /admin/restaurants/{id} — Delete a restaurant (Admin only)
+# 🔑 Default Test Accounts
 
-Menu Items
+The seeder creates the following accounts for testing.
 
-GET /foods — List food items filtered by restaurantPOST /admin/foods — Add a new food item (Admin only)PUT /admin/foods/{id} — Update food item price/availability (Admin only)DELETE /admin/foods/{id} — Delete food item (Admin only)
+| Role         | Email                  | Password      | Access                                |
+| ------------ | ---------------------- | ------------- | ------------------------------------- |
+| **Admin**    | `admin@mealsprint.com` | `Admin@12345` | Restaurant and menu management        |
+| **Customer** | `user@mealsprint.com`  | `User@12345`  | Restaurant browsing and food ordering |
 
-Orders & Payment
+> ⚠️ These credentials are intended only for development and testing.
 
-POST /orders — Place order with authoritative database pricingGET /orders — List authenticated user's ordersPUT /orders/{id}/pay — Process mock payment and confirm orderDELETE /orders/{id} — Cancel an eligible order
+---
+
+# 📡 REST API Overview
+
+## 🔐 Authentication
+
+### Register a User
+
+```http
+POST /auth/register
+```
+
+Registers a new customer or administrator account.
+
+---
+
+### Login
+
+```http
+POST /auth/login
+```
+
+Authenticates the user and returns a JWT access token.
+
+---
+
+### Get Current User
+
+```http
+GET /auth/me
+```
+
+Returns the profile of the currently authenticated user.
+
+---
+
+# 🏪 Restaurant Endpoints
+
+### Get Restaurants
+
+```http
+GET /restaurants
+```
+
+Returns a list of restaurants.
+
+Supports filtering by:
+
+* Search
+* City
+* Cuisine
+* Restaurant status
+
+---
+
+### Get Restaurant Details
+
+```http
+GET /restaurants/{id}
+```
+
+Returns restaurant details along with its menu items.
+
+---
+
+### Create Restaurant
+
+```http
+POST /admin/restaurants
+```
+
+**Admin only**
+
+Creates a new restaurant.
+
+---
+
+### Update Restaurant
+
+```http
+PUT /admin/restaurants/{id}
+```
+
+**Admin only**
+
+Updates restaurant details or its Open/Closed status.
+
+---
+
+### Delete Restaurant
+
+```http
+DELETE /admin/restaurants/{id}
+```
+
+**Admin only**
+
+Deletes a restaurant.
+
+---
+
+# 🍔 Food Menu Endpoints
+
+### Get Food Items
+
+```http
+GET /foods
+```
+
+Returns food items and supports filtering by restaurant.
+
+---
+
+### Create Food Item
+
+```http
+POST /admin/foods
+```
+
+**Admin only**
+
+Adds a new food item to a restaurant menu.
+
+---
+
+### Update Food Item
+
+```http
+PUT /admin/foods/{id}
+```
+
+**Admin only**
+
+Updates food details, price, or availability.
+
+---
+
+### Delete Food Item
+
+```http
+DELETE /admin/foods/{id}
+```
+
+**Admin only**
+
+Deletes a food item.
+
+---
+
+# 📦 Orders & Payment
+
+### Place an Order
+
+```http
+POST /orders
+```
+
+Creates a new order.
+
+Food prices are calculated using the **authoritative prices stored in the database**, helping prevent client-side price manipulation.
+
+---
+
+### Get User Orders
+
+```http
+GET /orders
+```
+
+Returns all orders belonging to the authenticated user.
+
+---
+
+### Process Payment
+
+```http
+PUT /orders/{id}/pay
+```
+
+Processes a mock payment and confirms the order.
+
+---
+
+### Cancel an Order
+
+```http
+DELETE /orders/{id}
+```
+
+Cancels an eligible order.
+
+---
+
+# 🔒 Security Highlights
+
+* Argon2 password hashing.
+* JWT-based authentication.
+* Role-based authorization.
+* Protected admin endpoints.
+* Server-side food price validation.
+* Pydantic v2 request validation.
+* Environment-based configuration.
+* Sensitive credentials stored in `.env`.
+
+---
+
+# 💡 Application Architecture
+
+```text
+Frontend
+   │
+   │ HTTP Requests (Fetch API)
+   ▼
+FastAPI Backend
+   │
+   ├── Authentication
+   ├── Authorization
+   ├── Business Logic
+   ├── Cart Price Validation
+   └── Order Management
+   │
+   ▼
+SQLAlchemy ORM
+   │
+   ▼
+MySQL Database
+```
+
+---
+
+# 👨‍💻 Main User Flow
+
+```text
+Register / Login
+       ↓
+Browse Restaurants
+       ↓
+Search or Filter
+       ↓
+View Menu
+       ↓
+Add Items to Cart
+       ↓
+Enter Delivery Address
+       ↓
+Create Order
+       ↓
+Mock Payment
+       ↓
+Order Confirmed
+```
+
+---
+
+# 🧑‍💼 Admin Flow
+
+```text
+Admin Login
+     ↓
+Open Admin Dashboard
+     ↓
+Manage Restaurants
+     ↓
+Manage Food Items
+     ↓
+Update Availability
+     ↓
+Control Restaurant Status
+```
+
+---
+
+# 🎯 Future Improvements
+
+Possible future enhancements include:
+
+* Real payment gateway integration.
+* Email notifications.
+* Restaurant image uploads.
+* Customer profile management.
+* Order history improvements.
+* Live delivery tracking.
+* WebSocket-based real-time updates.
+* Restaurant ratings and reviews.
+* Pagination and advanced filtering.
+* Docker deployment support.
+
+---
+
+# 📄 License
+
+This project is created for **educational and portfolio purposes**.
+
+---
+
+## ⭐ If you like this project, consider giving the repository a star!
+
+**MealSprint — Fast, Simple, and Modern Food Ordering.** 🍔⚡

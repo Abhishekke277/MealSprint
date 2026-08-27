@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuickBite / MealSprint</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+
+  <!-- ================= TOP HEADER ================= -->
+  <header class="top-header">
+    <div class="header-content">
+      <div class="brand">
+        <span class="brand-icon">🍔</span>
+        <span class="brand-name">MealSprint</span>
+      </div>
+      <div id="header-auth-status">
+        <!-- Injected via JavaScript (e.g., "Please sign in" or "Hi, tester [ADMIN] [Logout]") -->
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= SUB NAVIGATION TABS ================= -->
+  <nav class="sub-nav" id="sub-nav" style="display: none;">
+    <div class="nav-container" id="nav-tabs-container">
+      <!-- Tabs injected dynamically based on User Role (Customer vs Admin) -->
+    </div>
+  </nav>
+
+  <!-- ================= MAIN CONTAINER ================= -->
+  <main class="main-container">
+
+    <!-- 1. AUTHENTICATION SECTION (Sign In / Register Card) -->
+    <section id="auth-section" class="auth-section">
+      <div class="auth-card">
+        <h2 class="auth-title">Welcome to QuickBite <span class="title-icon">🍕</span></h2>
+        
+        <!-- Toggle Buttons -->
+        <div class="auth-toggle-group">
+          <button type="button" id="tab-signin-btn" class="toggle-btn active" onclick="AuthUI.switchTab('signin')">Sign In</button>
+          <button type="button" id="tab-register-btn" class="toggle-btn" onclick="AuthUI.switchTab('register')">Register</button>
+        </div>
+
+        <!-- Sign In Form -->
+        <form id="signin-form" onsubmit="App.handleSignIn(event)">
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="signin-email" required placeholder="you@example.com">
+          </div>
+          <div class="form-group password-group">
+            <label>Password</label>
+            <div class="password-wrapper">
+              <input type="password" id="signin-password" required placeholder="••••••••">
+              <button type="button" class="eye-btn" onclick="AuthUI.togglePassword('signin-password', this)"><i class="fa-regular fa-eye"></i></button>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block" id="signin-submit-btn">Sign In</button>
+          <div id="signin-status-text" class="status-indicator"></div>
+        </form>
+
+        <!-- Register Form -->
+        <form id="register-form" style="display: none;" onsubmit="App.handleRegister(event)">
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" id="reg-name" required placeholder="Rohan kumar">
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="reg-email" required placeholder="you@example.com">
+          </div>
+          <div class="form-group password-group">
+            <label>Password</label>
+            <div class="password-wrapper">
+              <input type="password" id="reg-password" required minlength="6" placeholder="min 6 characters">
+              <button type="button" class="eye-btn" onclick="AuthUI.togglePassword('reg-password', this)"><i class="fa-regular fa-eye"></i></button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Account Type</label>
+            <select id="reg-role">
+              <option value="customer" selected>Regular User</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block" id="register-submit-btn">Register</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- 2. CUSTOMER VIEW: RESTAURANTS LIST & FILTERS -->
+    <section id="customer-restaurants-section" style="display: none;">
+      <h2 class="section-title">Nearby Restaurants</h2>
+      
+      <!-- Filter Bar -->
+      <div class="filter-row">
+        <input type="text" id="filter-search" placeholder="Search name or cuisine..." oninput="CustomerUI.applyFilters()">
+        <input type="text" id="filter-city" placeholder="City..." oninput="CustomerUI.applyFilters()">
+        <input type="text" id="filter-cuisine" placeholder="Cuisine..." oninput="CustomerUI.applyFilters()">
+        <label class="checkbox-label">
+          <input type="checkbox" id="filter-open" onchange="CustomerUI.applyFilters()"> Open only
+        </label>
+      </div>
+
+      <!-- Restaurant Cards Grid -->
+      <div class="restaurant-grid" id="restaurants-grid">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- 3. CUSTOMER VIEW: MY ORDERS -->
+    <section id="customer-orders-section" style="display: none;">
+      <div class="section-header-flex">
+        <h2 class="section-title">My Orders</h2>
+        <button class="btn btn-primary btn-sm" onclick="CustomerUI.loadMyOrders()">🔄 Refresh</button>
+      </div>
+      <div class="orders-list" id="orders-list-container">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- 4. ADMIN VIEW: MANAGE RESTAURANTS TABLE -->
+    <section id="admin-restaurants-section" style="display: none;">
+      <div class="section-header-flex">
+        <h2 class="section-title">Manage Restaurants</h2>
+        <button class="btn btn-primary" onclick="AdminUI.openRestaurantModal()">+ Add Restaurant</button>
+      </div>
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Cuisine</th>
+              <th>City</th>
+              <th>Rating</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="admin-restaurants-table-body">
+            <!-- Rendered dynamically -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 5. ADMIN VIEW: MANAGE MENU ITEMS TABLE -->
+    <section id="admin-menu-section" style="display: none;">
+      <div class="section-header-flex">
+        <h2 class="section-title">Manage Menu Items</h2>
+        <button class="btn btn-primary" onclick="AdminUI.openFoodModal()">+ Add Item</button>
+      </div>
+      
+      <div class="admin-filter-bar">
+        <label>Filter by restaurant</label>
+        <select id="admin-food-restaurant-filter" onchange="AdminUI.filterFoodsByRestaurant()">
+          <option value="">— All Restaurants —</option>
+        </select>
+      </div>
+
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Restaurant</th>
+              <th>Price</th>
+              <th>Available</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="admin-foods-table-body">
+            <!-- Rendered dynamically -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= STICKY BOTTOM CART BAR ================= -->
+  <div id="sticky-cart-bar" class="sticky-cart-bar" style="display: none;">
+    <div class="cart-bar-content">
+      <span id="cart-bar-info">1 item • ₹249</span>
+      <button class="btn btn-cart-view" onclick="CustomerUI.openMenuModal(CustomerUI.activeRestaurantId)">View Cart & Order →</button>
+    </div>
+  </div>
+
+  <!-- ================= MODALS ================= -->
+
+  <!-- Modal A: Restaurant Menu & Place Order -->
+  <div id="menu-modal" class="modal-overlay">
+    <div class="modal-dialog">
+      <button class="modal-close-btn" onclick="ModalUI.close('menu-modal')">✕</button>
+      <h3 class="modal-title" id="menu-modal-title">Restaurant — Menu</h3>
+      
+      <div class="menu-modal-items" id="menu-modal-items-container">
+        <!-- Rendered dynamically with increment/decrement counters -->
+      </div>
+
+      <div class="form-group" style="margin-top: 1.5rem;">
+        <label>Delivery Address</label>
+        <textarea id="order-delivery-address" rows="3" placeholder="Enter your full delivery address"></textarea>
+      </div>
+
+      <button class="btn btn-primary btn-block" style="margin-top: 1rem;" onclick="CustomerUI.submitOrder()">Place Order</button>
+    </div>
+  </div>
+
+  <!-- Modal B: Admin Add / Edit Restaurant -->
+  <div id="restaurant-modal" class="modal-overlay">
+    <div class="modal-dialog">
+      <button class="modal-close-btn" onclick="ModalUI.close('restaurant-modal')">✕</button>
+      <h3 class="modal-title" id="restaurant-modal-title">Add Restaurant</h3>
+      <form id="restaurant-form" onsubmit="AdminUI.handleSaveRestaurant(event)">
+        <input type="hidden" id="modal-resto-id">
+        <div class="form-group">
+          <label>Name</label>
+          <input type="text" id="modal-resto-name" required placeholder="Spice Garden">
+        </div>
+        <div class="form-row-2">
+          <div class="form-group">
+            <label>Cuisine</label>
+            <input type="text" id="modal-resto-cuisine" required placeholder="Indian">
+          </div>
+          <div class="form-group">
+            <label>City</label>
+            <input type="text" id="modal-resto-city" required placeholder="Mumbai">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Address</label>
+          <textarea id="modal-resto-address" rows="2" required placeholder="123 MG Road, Mumbai"></textarea>
+        </div>
+        <div class="form-row-2">
+          <div class="form-group">
+            <label>Latitude (opt.)</label>
+            <input type="number" step="any" id="modal-resto-lat" value="19.0760">
+          </div>
+          <div class="form-group">
+            <label>Longitude (opt.)</label>
+            <input type="number" step="any" id="modal-resto-lon" value="72.8777">
+          </div>
+        </div>
+        <div class="form-row-2 align-center">
+          <div class="form-group">
+            <label>Rating (0–5)</label>
+            <input type="number" step="0.1" min="0" max="5" id="modal-resto-rating" value="5.0">
+          </div>
+          <div class="form-group checkbox-wrapper">
+            <label class="checkbox-label">
+              <input type="checkbox" id="modal-resto-open" checked> Currently Open
+            </label>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block" style="margin-top: 1.25rem;">Save Restaurant</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal C: Admin Add / Edit Menu Item -->
+  <div id="food-modal" class="modal-overlay">
+    <div class="modal-dialog">
+      <button class="modal-close-btn" onclick="ModalUI.close('food-modal')">✕</button>
+      <h3 class="modal-title" id="food-modal-title">Add Menu Item</h3>
+      <form id="food-form" onsubmit="AdminUI.handleSaveFood(event)">
+        <input type="hidden" id="modal-food-id">
+        <div class="form-group">
+          <label>Restaurant</label>
+          <select id="modal-food-restaurant-select" required>
+            <!-- Injected dynamically -->
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Item Name</label>
+          <input type="text" id="modal-food-name" required placeholder="Butter Chicken">
+        </div>
+        <div class="form-group">
+          <label>Description (opt.)</label>
+          <textarea id="modal-food-desc" rows="2" placeholder="Rich & creamy tomato gravy..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Price (₹)</label>
+          <input type="number" step="any" id="modal-food-price" required placeholder="199">
+        </div>
+        <div class="form-group checkbox-wrapper">
+          <label class="checkbox-label">
+            <input type="checkbox" id="modal-food-available" checked> Available now
+          </label>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block" style="margin-top: 1.25rem;">Save Item</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= CUSTOM CONFIRM / ALERT DIALOG MODAL ================= -->
+  <div id="dialog-modal" class="modal-overlay">
+    <div class="modal-dialog" style="max-width: 400px; text-align: center;">
+      <div id="dialog-icon" style="font-size: 2.5rem; margin-bottom: 0.75rem; color: var(--primary-orange);">
+        <i class="fa-solid fa-circle-question"></i>
+      </div>
+      <h3 class="modal-title" id="dialog-title" style="margin-bottom: 0.5rem;">Confirm Action</h3>
+      <p id="dialog-message" style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem;"></p>
+      
+      <div style="display: flex; gap: 0.75rem; justify-content: center;">
+        <button type="button" class="btn btn-outline" id="dialog-cancel-btn" style="flex: 1; border: 1px solid var(--border-color); background: white; color: var(--text-dark);">Cancel</button>
+        <button type="button" class="btn btn-primary" id="dialog-confirm-btn" style="flex: 1;">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- JavaScript -->
+  <script src="app.js"></script>
+</body>
+</html>

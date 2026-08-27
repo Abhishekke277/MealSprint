@@ -7,19 +7,9 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
-    EMAIL_FROM: str = "no-reply@mealsprint.local"  # <-- Default value added here
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
-
-class Settings(BaseSettings):
-    # No defaults: will strictly load from .env file
-    DATABASE_URL: str
-    SECRET_KEY: str
-    ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
-    EMAIL_FROM: str
+    EMAIL_FROM: str = "no-reply@mealsprint.local"
 
     model_config = SettingsConfigDict(
-        # Reads .env from the root project directory
         env_file=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env"),
         env_file_encoding="utf-8",
         extra="ignore"

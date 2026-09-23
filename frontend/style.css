@@ -755,3 +755,20 @@ body {
   .form-row-2 { grid-template-columns: 1fr; }
   .modal-dialog { padding: 1.5rem; }
 }
+
+/* Edge / Chrome / Safari ka default password eye button hide karne ke liye */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
+
+input[type="password"]::-webkit-contacts-auto-fill-button,
+input[type="password"]::-webkit-credentials-auto-fill-button {
+  visibility: hidden;
+  position: absolute;
+  right: 0;
+}
+
+.password-wrapper input {
+  padding-right: 40px; /* eye icon ke liye space */
+}

@@ -325,7 +325,9 @@ body {
   margin-top: 1rem;
   font-size: 0.88rem;
   font-weight: 600;
-  color: #10b981;
+  min-height: 1.25rem; /* prevent layout jump when empty */
+  transition: color 0.2s;
+  color: var(--text-muted); /* default neutral; variants override via .status-success/.status-error/.status-loading */
 }
 
 /* ================= CUSTOMER RESTAURANTS GRID ================= */
@@ -771,4 +773,54 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
 
 .password-wrapper input {
   padding-right: 40px; /* eye icon ke liye space */
+}
+
+/* ================= LOADING, FEEDBACK & DOUBLE-CLICK PREVENTION ================= */
+
+/* --- Status indicator variants (below auth forms) --- */
+/* Neutral loading state */
+.status-indicator.status-loading {
+  color: var(--text-muted);
+}
+
+/* Green success state */
+.status-indicator.status-success {
+  color: #28a745;
+}
+
+/* Red error state */
+.status-indicator.status-error {
+  color: var(--btn-danger);
+}
+
+/* --- Disabled button appearance --- */
+.btn:disabled,
+.btn[disabled] {
+  opacity: 0.65;
+  cursor: not-allowed;
+  pointer-events: none; /* prevents any hover/click through */
+  transform: none;      /* suppress :active scale while loading */
+}
+
+/* --- Form loading overlay: dims the container, blocks all clicks --- */
+.form-loading {
+  pointer-events: none;
+  opacity: 0.72;
+  transition: opacity 0.15s ease;
+}
+
+/* --- FA spinner is handled by fa-spin, but ensure smooth rotation fallback --- */
+@keyframes ms-spin {
+  to { transform: rotate(360deg); }
+}
+
+.ms-spinner {
+  display: inline-block;
+  width: 0.9em;
+  height: 0.9em;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  vertical-align: middle;
+  animation: ms-spin 0.7s linear infinite;
 }

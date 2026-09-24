@@ -85,6 +85,7 @@
             </select>
           </div>
           <button type="submit" class="btn btn-primary btn-block" id="register-submit-btn">Register</button>
+          <div id="register-status-text" class="status-indicator"></div>
         </form>
       </div>
     </section>
@@ -204,7 +205,7 @@
         <textarea id="order-delivery-address" rows="3" placeholder="Enter your full delivery address"></textarea>
       </div>
 
-      <button class="btn btn-primary btn-block" style="margin-top: 1rem;" onclick="CustomerUI.submitOrder()">Place Order</button>
+      <button class="btn btn-primary btn-block" id="place-order-btn" style="margin-top: 1rem;" onclick="CustomerUI.submitOrder()">Place Order</button>
     </div>
   </div>
 
@@ -254,7 +255,7 @@
             </label>
           </div>
         </div>
-        <button type="submit" class="btn btn-primary btn-block" style="margin-top: 1.25rem;">Save Restaurant</button>
+        <button type="submit" class="btn btn-primary btn-block" id="save-restaurant-btn" style="margin-top: 1.25rem;">Save Restaurant</button>
       </form>
     </div>
   </div>
@@ -289,7 +290,7 @@
             <input type="checkbox" id="modal-food-available" checked> Available now
           </label>
         </div>
-        <button type="submit" class="btn btn-primary btn-block" style="margin-top: 1.25rem;">Save Item</button>
+        <button type="submit" class="btn btn-primary btn-block" id="save-food-btn" style="margin-top: 1.25rem;">Save Item</button>
       </form>
     </div>
   </div>

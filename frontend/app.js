@@ -8,6 +8,74 @@ const CONFIG = {
   API_BASE_URL: "https://mealsprint-backend-w0jy.onrender.com"
 };
 
+// ================= REUSABLE UI LOADING HELPERS =================
+const UI = {
+  /**
+   * Enable or disable the loading state on a button.
+   * @param {HTMLElement} btn - The button element.
+   * @param {boolean} isLoading - True to enter loading state, false to restore.
+   * @param {string} [originalText] - Pass the original label on the first call so it can be restored.
+   */
+  setLoading(btn, isLoading, originalText) {
+    if (!btn) return;
+    if (isLoading) {
+      btn.dataset.originalText = originalText ?? btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> ${btn.dataset.originalText}`;
+    } else {
+      btn.disabled = false;
+      btn.innerHTML = btn.dataset.originalText ?? btn.innerHTML;
+      delete btn.dataset.originalText;
+    }
+  },
+
+  /**
+   * Run an async callback with automatic button loading + form overlay guard.
+   * Restores state in a finally block regardless of success or failure.
+   * @param {HTMLElement} btn - The button to disable during the call.
+   * @param {Function} asyncFn - Async function to execute.
+   * @param {HTMLElement|null} [container] - Optional parent element to dim (pointer-events: none).
+   */
+  async withLoading(btn, asyncFn, container = null) {
+    if (btn && btn.disabled) return; // double-click guard
+    const originalText = btn ? btn.innerHTML : "";
+    UI.setLoading(btn, true, originalText);
+    if (container) {
+      container.classList.add("form-loading");
+    }
+    try {
+      await asyncFn();
+    } finally {
+      UI.setLoading(btn, false);
+      if (container) {
+        container.classList.remove("form-loading");
+      }
+    }
+  },
+
+  /**
+   * Show a status message inside a container element.
+   * @param {string} elementId - ID of the status container element.
+   * @param {string} message - Text to display.
+   * @param {'loading'|'success'|'error'|''} state - Visual style variant.
+   */
+  setStatus(elementId, message, state = "") {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    el.textContent = message;
+    el.className = "status-indicator"; // reset
+    if (state) el.classList.add(`status-${state}`);
+  },
+
+  /** Clear a status message container. */
+  clearStatus(elementId) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    el.textContent = "";
+    el.className = "status-indicator";
+  }
+};
+
 // Application State
 const State = {
   user: null,
@@ -354,25 +422,30 @@ const CustomerUI = {
       return;
     }
 
-    try {
-      await API.post("/orders", {
-        restaurant_id: State.activeRestaurantId,
-        delivery_address: address,
-        items: items
-      });
+    const btn = document.getElementById("place-order-btn");
+    const container = document.querySelector("#menu-modal .modal-dialog");
 
-      showToast("Order placed successfully!", "success");
+    await UI.withLoading(btn, async () => {
+      try {
+        await API.post("/orders", {
+          restaurant_id: State.activeRestaurantId,
+          delivery_address: address,
+          items: items
+        });
 
-      // Clear State & Form Inputs
-      State.cart = {};
-      if (addressInput) addressInput.value = "";
+        showToast("Order placed successfully!", "success");
 
-      this.renderCartStickyBar();
-      ModalUI.close("menu-modal");
-      App.switchView("customer-orders");
-    } catch (err) {
-      showToast(err.message, "error");
-    }
+        // Clear State & Form Inputs
+        State.cart = {};
+        if (addressInput) addressInput.value = "";
+
+        this.renderCartStickyBar();
+        ModalUI.close("menu-modal");
+        App.switchView("customer-orders");
+      } catch (err) {
+        showToast(err.message, "error");
+      }
+    }, container);
   },
 
   async loadMyOrders() {
@@ -409,13 +482,16 @@ const CustomerUI = {
   },
 
   async payOrder(orderId) {
-    try {
-      await API.put(`/orders/${orderId}/pay`, {});
-      showToast("Payment Successful!", "success");
-      this.loadMyOrders();
-    } catch (err) {
-      showToast(err.message, "error");
-    }
+    const btn = document.querySelector(`[onclick="CustomerUI.payOrder(${orderId})"]`);
+    await UI.withLoading(btn, async () => {
+      try {
+        await API.put(`/orders/${orderId}/pay`, {});
+        showToast("Payment Successful!", "success");
+        this.loadMyOrders();
+      } catch (err) {
+        showToast(err.message, "error");
+      }
+    });
   },
 
   async cancelOrder(orderId) {
@@ -427,13 +503,16 @@ const CustomerUI = {
     );
     if (!proceed) return;
 
-    try {
-      await API.delete(`/orders/${orderId}`);
-      showToast("Order Cancelled", "info");
-      this.loadMyOrders();
-    } catch (err) {
-      showToast(err.message, "error");
-    }
+    const btn = document.querySelector(`[onclick="CustomerUI.cancelOrder(${orderId})"]`);
+    await UI.withLoading(btn, async () => {
+      try {
+        await API.delete(`/orders/${orderId}`);
+        showToast("Order Cancelled", "info");
+        this.loadMyOrders();
+      } catch (err) {
+        showToast(err.message, "error");
+      }
+    });
   }
 };
 
@@ -490,6 +569,9 @@ const AdminUI = {
   async handleSaveRestaurant(event) {
     event.preventDefault();
     const id = document.getElementById("modal-resto-id").value;
+    const btn = document.getElementById("save-restaurant-btn");
+    const form = document.getElementById("restaurant-form");
+
     const payload = {
       name: document.getElementById("modal-resto-name").value.trim(),
       cuisine_type: document.getElementById("modal-resto-cuisine").value.trim(),
@@ -501,19 +583,21 @@ const AdminUI = {
       is_open: document.getElementById("modal-resto-open").checked
     };
 
-    try {
-      if (id) {
-        await API.put(`/admin/restaurants/${id}`, payload);
-        showToast("Restaurant updated!", "success");
-      } else {
-        await API.post("/admin/restaurants", payload);
-        showToast("Restaurant created!", "success");
+    await UI.withLoading(btn, async () => {
+      try {
+        if (id) {
+          await API.put(`/admin/restaurants/${id}`, payload);
+          showToast("Restaurant updated!", "success");
+        } else {
+          await API.post("/admin/restaurants", payload);
+          showToast("Restaurant created!", "success");
+        }
+        ModalUI.close("restaurant-modal");
+        this.loadAdminRestaurants();
+      } catch (err) {
+        showToast(err.message, "error");
       }
-      ModalUI.close("restaurant-modal");
-      this.loadAdminRestaurants();
-    } catch (err) {
-      showToast(err.message, "error");
-    }
+    }, form);
   },
 
   async deleteRestaurant(id) {
@@ -595,6 +679,9 @@ const AdminUI = {
 
   async handleSaveFood(event) {
     event.preventDefault();
+    const btn = document.getElementById("save-food-btn");
+    const form = document.getElementById("food-form");
+
     const payload = {
       restaurant_id: parseInt(document.getElementById("modal-food-restaurant-select").value),
       name: document.getElementById("modal-food-name").value.trim(),
@@ -603,14 +690,16 @@ const AdminUI = {
       is_available: document.getElementById("modal-food-available").checked
     };
 
-    try {
-      await API.post("/admin/foods", payload);
-      showToast("Food item added!", "success");
-      ModalUI.close("food-modal");
-      this.loadAdminMenu();
-    } catch (err) {
-      showToast(err.message, "error");
-    }
+    await UI.withLoading(btn, async () => {
+      try {
+        await API.post("/admin/foods", payload);
+        showToast("Food item added!", "success");
+        ModalUI.close("food-modal");
+        this.loadAdminMenu();
+      } catch (err) {
+        showToast(err.message, "error");
+      }
+    }, form);
   },
 
   async deleteFood(id) {
@@ -690,75 +779,82 @@ const App = {
   async handleSignIn(event) {
     event.preventDefault();
     const btn = document.getElementById("signin-submit-btn");
-    const statusText = document.getElementById("signin-status-text");
-    btn.disabled = true;
-    statusText.textContent = "Signing in...";
+    const form = document.getElementById("signin-form");
 
-    try {
-      const res = await API.post("/auth/login", {
-        email: document.getElementById("signin-email").value.trim(),
-        password: document.getElementById("signin-password").value
-      });
+    await UI.withLoading(btn, async () => {
+      UI.setStatus("signin-status-text", "Signing in, please wait…", "loading");
+      try {
+        const res = await API.post("/auth/login", {
+          email: document.getElementById("signin-email").value.trim(),
+          password: document.getElementById("signin-password").value
+        });
 
-      State.token = res.access_token;
-      State.user = res.user;
-      localStorage.setItem("mealsprint_token", res.access_token);
-      localStorage.setItem("mealsprint_user", JSON.stringify(res.user));
+        State.token = res.access_token;
+        State.user = res.user;
+        localStorage.setItem("mealsprint_token", res.access_token);
+        localStorage.setItem("mealsprint_user", JSON.stringify(res.user));
 
-      // Reset Form Inputs
-      document.getElementById("signin-form").reset();
+        // Reset Form Inputs
+        document.getElementById("signin-form").reset();
+        UI.clearStatus("signin-status-text");
 
-      showToast("Signed in successfully!", "success");
-      AuthUI.renderHeader();
+        showToast("Signed in successfully!", "success");
+        AuthUI.renderHeader();
 
-      if (res.user.role === "admin") {
-        this.switchView("admin-restaurants");
-      } else {
-        this.switchView("customer-restaurants");
+        if (res.user.role === "admin") {
+          this.switchView("admin-restaurants");
+        } else {
+          this.switchView("customer-restaurants");
+        }
+      } catch (err) {
+        UI.setStatus("signin-status-text", err.message, "error");
+        showToast(err.message, "error");
       }
-    } catch (err) {
-      showToast(err.message, "error");
-    } finally {
-      btn.disabled = false;
-      statusText.textContent = "";
-    }
+    }, form);
   },
 
   async handleRegister(event) {
     event.preventDefault();
     const btn = document.getElementById("register-submit-btn");
-    btn.disabled = true;
+    const form = document.getElementById("register-form");
 
-    try {
-      const payload = {
-        full_name: document.getElementById("reg-name").value.trim(),
-        email: document.getElementById("reg-email").value.trim(),
-        password: document.getElementById("reg-password").value,
-        role: document.getElementById("reg-role").value
-      };
+    await UI.withLoading(btn, async () => {
+      UI.setStatus("register-status-text", "Creating account, please wait…", "loading");
+      try {
+        const payload = {
+          full_name: document.getElementById("reg-name").value.trim(),
+          email: document.getElementById("reg-email").value.trim(),
+          password: document.getElementById("reg-password").value,
+          role: document.getElementById("reg-role").value
+        };
 
-      const res = await API.post("/auth/register", payload);
-      State.token = res.access_token;
-      State.user = res.user;
-      localStorage.setItem("mealsprint_token", res.access_token);
-      localStorage.setItem("mealsprint_user", JSON.stringify(res.user));
+        const res = await API.post("/auth/register", payload);
+        State.token = res.access_token;
+        State.user = res.user;
+        localStorage.setItem("mealsprint_token", res.access_token);
+        localStorage.setItem("mealsprint_user", JSON.stringify(res.user));
 
-      // Reset Form Inputs
-      document.getElementById("register-form").reset();
+        // Reset Form Inputs
+        document.getElementById("register-form").reset();
+        UI.setStatus("register-status-text", "Account created successfully! Redirecting…", "success");
 
-      showToast("Registration successful!", "success");
-      AuthUI.renderHeader();
+        showToast("Registration successful!", "success");
+        AuthUI.renderHeader();
 
-      if (res.user.role === "admin") {
-        this.switchView("admin-restaurants");
-      } else {
-        this.switchView("customer-restaurants");
+        // Brief pause so user sees the green success message before redirect
+        await new Promise(resolve => setTimeout(resolve, 1200));
+
+        UI.clearStatus("register-status-text");
+        if (res.user.role === "admin") {
+          this.switchView("admin-restaurants");
+        } else {
+          this.switchView("customer-restaurants");
+        }
+      } catch (err) {
+        UI.setStatus("register-status-text", err.message, "error");
+        showToast(err.message, "error");
       }
-    } catch (err) {
-      showToast(err.message, "error");
-    } finally {
-      btn.disabled = false;
-    }
+    }, form);
   },
 
   handleLogout() {

@@ -3,16 +3,16 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 from typing import Generator
 from backend.config import settings
 
-# Agar Aiven Cloud database use ho raha hai to PyMySQL ke liye SSL enable karein
+# Cloud databases (Aiven ya TiDB Cloud) ke liye PyMySQL SSL require karta hai
 connect_args = {}
-if "aivencloud.com" in settings.DATABASE_URL:
+if any(cloud_provider in settings.DATABASE_URL for cloud_provider in ["aivencloud.com", "tidbcloud.com"]):
     connect_args = {"ssl": {"ssl_mode": "REQUIRED"}}
 
 engine = create_engine(
     settings.DATABASE_URL,
     connect_args=connect_args,
     pool_pre_ping=True,
-    pool_recycle=3600
+    pool_recycle=300  # Serverless databases ke idle timeouts ke liye 300 seconds best hota hai
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
